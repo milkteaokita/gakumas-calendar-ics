@@ -1,63 +1,97 @@
-# 学マス声優节目日历 → 自动更新的 ICS
+# 學園偶像大師 (学マス) 聲優節目日曆 — Linux Docker 自架版
 
-分析依据：2026-11-01 上传的完整网站 HAR 文件，以及其中的 `main-Birmlctr.js`。
+自動同步 `https://gakusei-cheer-portal.web.app/calendar` 的學園偶像大師聲優節目與活動行程，轉換為標準 iCalendar (`calendar.ics`)，並依「出演者」自動拆分為每位聲優的獨立訂閱日曆 (`casts/cast-*.ics`)。
 
-确认来源：`https://gakusei-cheer-portal.web.app/calendar`。网站通过 Firebase Firestore 项目 `my-schedule-pwa-121d0` 的公开日程集合 `schedules` 加载记录，含 `title`, `start`, `end`, `selectedCasts`, `broadcastType`, `linkUrl`, `allDay`, `id` 等字段。网站开启 App Check；本项目不会复制任何 HAR 中的 token 或尝试绕过验证。
+本專案已完整改寫為 **Linux Docker 容器化架構**，內建多執行緒 Web 伺服器、背景定時同步排程、網頁手動更新／上傳介面，以及支援**繁體中文／簡體中文切換**的現代化前端網頁。
 
-## 重要：验证状态
+---
 
-**这是依据 HAR 构建的可执行方案，尚未在 GitHub Actions 上验证。** 当前构建环境无法对源站进行实时网络请求。应用脚本可能随站点更新而改变；部分无头浏览器可能无法通过 App Check。GitHub Actions 若失败，必须查看日志、修订方案，不应视为已经成功订阅。
+## ✨ 功能特色
 
-## 如何部署
+- **🐳 一鍵 Docker 部署**：單一容器整合 Web 服務 + Playwright Chromium 無頭瀏覽器自動抓取 + 聲優日曆自動分流，非常適合部署在 Linux 小主機 / NAS / VPS 長期掛機運行。
+- **🌐 繁體／簡體中文雙語網頁**：
+  - 網頁右上角可隨時切換 **繁體中文** 與 **简体中文**（自動記憶語言偏好）。
+  - 內建聲優與學マス角色名稱對照（如：`花岩 香奈` ↔ `葛城 莉莉婭 / 葛城 莉莉娅`），支援以聲優或角色名稱即時搜尋與篩選。
+  - 提供「複製訂閱連結」、「系統日曆一鍵訂閱 (`webcal://`)」、「加入 Google 日曆」與「下載 `.ics`」按鈕。
+- **🔄 自動排程 + 手動上傳雙保險**：
+  - 容器背景預設每 3 小時自動抓取最新行程並重新拆分各聲優 `.ics`。
+  - 若原站因 Firebase App Check 阻擋無頭瀏覽器，可直接透過網頁上的「📤 手動上傳 ICS」功能上傳 `calendar.ics`，伺服器會立即驗證並重新生成所有聲優獨立日曆。
+- **🛡️ 訂閱網址永久固定**：
+  - 每位聲優的檔案名稱由姓名 SHA-256 固定生成（如 `/casts/cast-658f49d479bba61d.ics`）。
+  - 即使某位聲優暫時沒有未來行程，系統也會保留合法的空日曆，不會讓已訂閱的 Google / Apple 日曆出現 404 錯誤。
 
-1. 在 GitHub 建立 **Public** 仓库，例如 `gakusei-calendar-ics`。
-2. 把本文件夹内**所有内容**上传到仓库根目录，包括隐藏目录 `.github/workflows/refresh.yml`。请不要上传 HAR 文件。
-3. 进入 GitHub 仓库 → **Settings → Actions → General → Workflow permissions**，允许 **Read and write permissions**（若可用），否则使用具有内容写入权限的工作流配置。
-4. 在 **Actions → Refresh ICS subscription → Run workflow** 手动启动第一次更新。
-5. 进入该次运行记录，确认输出 `Wrote calendar.ics: N current/future events`，以及仓库根目录生成了 `calendar.ics`。
-6. 在 **Settings → Pages → Build and deployment** 选择 **Deploy from a branch**，Branch 选 `main`，Folder 选 `/ (root)`，保存；如果默认分支不是 `main`，使用实际分支。
-7. 订阅 URL：`https://YOUR_GITHUB_USERNAME.github.io/gakusei-calendar-ics/calendar.ics`（如果仓库名称不同，换成实际名称）。确认浏览器能打开并显示 `BEGIN:VCALENDAR` 才能订阅。
-8. 在 Google Calendar 网页版 → 其他日历 → `+` → **通过网址添加**，粘贴 ICS URL。此方式是订阅，**不是**一次性导入；Google 自身刷新周期不可控。
+---
 
-GitHub Actions 在每小时第 7 分钟尝试更新（cron 在 UTC 运行），实际启动可能会延迟、跳过，定时工作流也可能因仓库长期不活跃而暂停。执行失败时，旧文件会保留。
+## 🚀 Linux Docker 快速部署
 
-## 本地测试
+### 1. 使用 Docker Compose 啟動（推薦）
 
-需要 Python 3.10+（建议 3.12）：
-
-```bash
-python -m pip install -r requirements.txt
-python -m playwright install chromium
-python -m unittest discover -s tests -v
-python update_calendar.py --output calendar.ics
-```
-
-如果抓取失败，可用可见浏览器观察原因：
+在您的 Linux 主機上取得本專案後，於專案根目錄執行：
 
 ```bash
-python update_calendar.py --visible
+docker compose up -d --build
 ```
 
-`--visible` 适合 Windows 的本地桌面环境，不适合 GitHub Actions 无桌面 Linux。
+啟動後：
+- **公開訂閱主頁**：`http://<您的主機IP>:3002/`
+- **系統管理後台 (Retrigger / 上傳 / 即時 Log)**：`http://<您的主機IP>:3002/admin`
+- **聲優簡易表格頁**：`http://<您的主機IP>:3002/casts/`
+- **總日曆訂閱網址**：`http://<您的主機IP>:3002/calendar.ics`
+- **健康檢查端點**：`http://<您的主機IP>:3002/healthz`
 
-## 运行原理与边界
+> **資料持久化**：容器首次啟動時，會自動將初始的 `calendar.ics` 與 `casts/` 複製到宿主機的 `./data` 目錄中。之後所有自動更新或手動上傳的日曆都會保存在 `./data`，重啟或更新容器不會遺失任何資料。
 
-本项目仅将源网站 JavaScript 的 `loadAllScheduleEvents` 函数和共享数据数组暴露给本次浏览器进程，随后通过页面自身 Firebase 客户端读取 `schedules`。所有请求仍经过源站原本的 App Check 和 Firestore 权限检查。没有使用 HAR 中的 App Check token 或 API key。
+---
 
-- 使用 `Asia/Tokyo` 解读网站的无时区日期文本（如 `2026-11-01T19:00`），ICS 写为 UTC，日历应用按用户时区显示。
-- 包含日本时区“今天”开始或仍跨越今天的活动。网站的明日/未来活动如源数据库里有，也会提取。
-- 全天活动的 `DTEND` 使用 RFC 5545 的次日独占格式。
-- 对有结束时间的节目如实写入；结束时间缺失时不猜测长度。
-- 固定 `UID` 根据原数据库 ID 生成，避免重复；源站删除的事件会从下次更新的 ICS 中消失（实际订阅客户端如何处理取消依赖客户端）。
-- 不能保证网站维护者提供的每条活动都准确或全部处于公开访问权限。
-- 本项目不包含自行破解 Firebase App Check 的任何机制。若源站限制自动化，请停止此方式并联系站点维护者申请官方公开日历 API 或 ICS。
-- 为避免错误清空订阅，抓取失败或当前和未来事件为零时不覆盖旧文件。这也意味着正常情况下未来活动确实为零时，会保留旧内容，需人工审查。
+### 2. 環境變數設定 (`docker-compose.yml` 或 `.env`)
 
-## 常见报错
+您可以在 `docker-compose.yml` 或同目錄下的 `.env` 檔案調整以下參數：
 
-- `Website JS bundle has changed`: 网站构建后函数签名改变。需要根据更新后的公开页面 JS 调整 `BRIDGE_MARKER` 和 `BRIDGE_REPLACEMENT`。
-- `Site returned no schedule data` 或 Firestore permission/app-check 错误：浏览器验证未成功或源站改了权限。查看 Actions 日志；不能用过期 HAR token 解决。
-- `Page wait_for_function timeout`: 无法加载公开网站、浏览器反自动化检查阻拦，或者桥接 marker 变化。
-- 订阅链接 404：首次 Actions 未成功、Pages 未启用、分支/仓库名不匹配。
+| 變數名稱 | 預設值 | 說明 |
+| :--- | :--- | :--- |
+| `PORT` | `3002` | Web 服務監聽埠號 |
+| `AUTO_REFRESH` | `true` | 是否啟用背景定時自動更新 (`true` / `false`) |
+| `REFRESH_ON_START` | `false` | 容器啟動時是否立即使用 Chromium 抓取一次遠端網站 |
+| `ENABLE_PLAYWRIGHT_FETCH` | `true` | 是否啟用 Playwright 無頭瀏覽器抓取原站（若僅想手動上傳 `.ics` 可設為 `false`） |
+| `REFRESH_INTERVAL_HOURS` | `3` | 背景自動同步間隔（小時） |
+| `FETCH_MONTHS` | `18` | 每次往後查詢的月份數（預設 18 個月） |
+| `BASE_URL` | *(空)* | 選填：固定外部公開網址（如 `https://cal.example.com`）。留空時會自動依瀏覽器請求的 `Host` / `X-Forwarded-Proto` 動態產生訂閱連結 |
+| `ADMIN_TOKEN` | *(空)* | 選填：管理金鑰。設定後，網頁上的「立即同步更新」與「手動上傳 ICS」需輸入此金鑰才可執行 |
 
-该项目与原站无关联，请尊重网站管理员的数据使用政策和访问频率。
+---
+
+## 🔧 常用維運指令
+
+```bash
+# 查看容器即時日誌
+docker compose logs -f
+
+# 手動在容器內觸發一次遠端抓取與拆分
+docker exec -it gakumas-calendar-ics python update_calendar.py --output /data/calendar.ics
+docker exec -it gakumas-calendar-ics python split_casts.py --input /data/calendar.ics --output-dir /data/casts
+
+# 運行單元測試
+docker exec -it gakumas-calendar-ics python -m unittest discover -s tests -v
+```
+
+---
+
+## 🌐 反向代理與外部訂閱建議
+
+若您希望透過手機在戶外網路，或讓 **Google Calendar**（Google 伺服器需要能連線至您的網址）自動同步訂閱，建議在 Linux 小主機上搭配以下任一方式提供公開 HTTPS 網址：
+
+1. **Cloudflare Tunnel (`cloudflared`)**：無須公網 IP 或開通路由器 Port，直接將 `http://localhost:3002` 對應至您的網域。
+2. **Nginx / Caddy 反向代理**：將網域反向代理至 `127.0.0.1:3002`（支援自動讀取 `X-Forwarded-Proto` 與 `X-Forwarded-Host`）。
+3. **Tailscale Funnel**：若使用 Tailscale，可直接開啟 Funnel 暴露 `3002` 埠供日曆服務抓取。
+
+---
+
+## 📁 專案結構
+
+- [`server.py`](server.py)：Docker 容器主程式（HTTP 伺服器、REST API、背景定時排程、資料目錄初始化）。
+- [`update_calendar.py`](update_calendar.py)：使用 Playwright Chromium 讀取原站日程並產生 RFC 5545 標準 `calendar.ics`。
+- [`split_casts.py`](split_casts.py)：解析 `calendar.ics` 的 `出演者` 欄位，拆分為各聲優獨立 `.ics`、`casts/index.json` 與雙語 `casts/index.html`。
+- [`index.html`](index.html)：支援繁體／簡體中文切換的公開日曆訂閱首頁。
+- [`admin.html`](admin.html)：`/admin` 系統管理後台（手動觸發 Retrigger、手動上傳 `.ics`、Playwright 逐步即時日誌終端機）。
+- [`Dockerfile`](Dockerfile) & [`docker-compose.yml`](docker-compose.yml)：Linux Docker 容器建置與編排設定。
+- [`tests/`](tests/)：日曆序列化、聲優拆分與 HTTP 伺服器之自動化單元測試。

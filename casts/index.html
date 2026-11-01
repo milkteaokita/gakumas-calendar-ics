@@ -1,16 +1,261 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>学マス声优独立日历</title><style>body{font:16px system-ui,sans-serif;max-width:850px;margin:3em auto;padding:0 1em;}table{border-collapse:collapse;width:100%;}td,th{padding:.65em;border-bottom:1px solid #ddd;text-align:left;}a{color:#1265bb;}small{color:#555;}</style></head><body><h1>学マス声优独立 ICS 日历</h1><p>按原始日历中的「出演者」拆分，每位声优可单独订阅；多人出演的节目会出现在各自的日历中。</p><p><small>数据日期（日本时间）：2026-11-01。源日历更新后才会包含新节目。</small></p><table><thead><tr><th>声优</th><th>事项数</th><th>链接</th></tr></thead><tbody><tr><td>七瀬 つむぎ</td><td>14</td><td><a href="cast-b44681056a959ae9.ics">订阅 ICS</a></td></tr>
-<tr><td>伊藤 舞音</td><td>19</td><td><a href="cast-31c71d6e15fb8245.ics">订阅 ICS</a></td></tr>
-<tr><td>天音 ゆかり</td><td>29</td><td><a href="cast-a18009ce787a6d37.ics">订阅 ICS</a></td></tr>
-<tr><td>学園アイドルマスター</td><td>14</td><td><a href="cast-6eccfa78d64bf608.ics">订阅 ICS</a></td></tr>
-<tr><td>小鹿 なお</td><td>9</td><td><a href="cast-745aa72c7054c1d3.ics">订阅 ICS</a></td></tr>
-<tr><td>川村 玲奈</td><td>17</td><td><a href="cast-3d62047b1644577b.ics">订阅 ICS</a></td></tr>
-<tr><td>春咲 暖</td><td>15</td><td><a href="cast-4ca3d348859e54ac.ics">订阅 ICS</a></td></tr>
-<tr><td>村田 綾香</td><td>6</td><td><a href="cast-c18dea9ef02fd63d.ics">订阅 ICS</a></td></tr>
-<tr><td>松田 彩音</td><td>9</td><td><a href="cast-7334b0cf47dc0cd1.ics">订阅 ICS</a></td></tr>
-<tr><td>浅見 香月</td><td>7</td><td><a href="cast-6828f664f3dbb98d.ics">订阅 ICS</a></td></tr>
-<tr><td>湊 みや</td><td>22</td><td><a href="cast-8087273be8fa38d0.ics">订阅 ICS</a></td></tr>
-<tr><td>花岩 香奈</td><td>16</td><td><a href="cast-658f49d479bba61d.ics">订阅 ICS</a></td></tr>
-<tr><td>薄井 友里</td><td>18</td><td><a href="cast-5381eae1053a6ac4.ics">订阅 ICS</a></td></tr>
-<tr><td>長月 あおい</td><td>13</td><td><a href="cast-8dfc91bc8f2db242.ics">订阅 ICS</a></td></tr>
-<tr><td>陽高 真白</td><td>8</td><td><a href="cast-1acc688e5b3a308f.ics">订阅 ICS</a></td></tr>
-<tr><td>飯田 ヒカル</td><td>20</td><td><a href="cast-d7459bbddbe32666.ics">订阅 ICS</a></td></tr></tbody></table></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>學園偶像大師聲優獨立日曆 | 学マス声优独立日历</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --accent: #ff5a36;
+      --accent-hover: #e04826;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .back-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .back-link:hover { color: var(--accent); }
+    .lang-switch {
+      display: inline-flex;
+      background: #e2e8f0;
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    .lang-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+    h1 { margin: 0 0 0.5rem; font-size: 1.65rem; }
+    p { margin: 0.4rem 0; color: var(--muted); }
+    .toolbar {
+      margin: 1.25rem 0;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+    table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
+    th, td { padding: 0.75rem 0.65rem; border-bottom: 1px solid var(--border); text-align: left; }
+    th { font-size: 0.85rem; text-transform: uppercase; color: var(--muted); background: #f1f5f9; }
+    .cast-cell { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .char-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #334155;
+    }
+    .char-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dot, #64748b);
+    }
+    .count-pill {
+      display: inline-block;
+      min-width: 2rem;
+      text-align: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff7ed;
+      color: #c2410c;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .actions-cell { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-outline { background: transparent; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f1f5f9; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a class="back-link" href="../" data-i18n="back_home">← 返回主頁（總日曆與完整面板）</a>
+    <div class="lang-switch" role="group" aria-label="Language switch">
+      <button type="button" class="lang-btn active" data-lang="zh-TW">繁體中文</button>
+      <button type="button" class="lang-btn" data-lang="zh-CN">简体中文</button>
+    </div>
+  </div>
+  <div class="card">
+    <h1 data-i18n="title">學マス聲優獨立 ICS 日曆</h1>
+    <p data-i18n="desc">依原始日曆中的「出演者」自動拆分，每位聲優可單獨訂閱；多人共演的節目會同時出現在各自的日曆中。</p>
+    <p><small><span data-i18n="date_prefix">資料日期（日本時間）：</span>2026-11-01。<span data-i18n="date_suffix">源日曆更新後會自動同步最新節目。</span></small></p>
+    <div class="toolbar">
+      <input type="search" id="searchInput" class="search-input" placeholder="搜尋聲優或角色名稱..." data-i18n-placeholder="search_ph">
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="th_cast">聲優／角色</th>
+          <th data-i18n="th_count">活動數</th>
+          <th data-i18n="th_link">訂閱與連結</th>
+        </tr>
+      </thead>
+      <tbody id="castTableBody">
+<tr data-search="七瀬 つむぎ 有村 麻央 有村 麻央"><td><div class="cast-cell"><strong>七瀬 つむぎ</strong><span class="char-badge" style="--dot:#9b51e0" data-tw="有村 麻央" data-cn="有村 麻央">有村 麻央</span></div></td><td><span class="count-pill">14</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-b44681056a959ae9.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-b44681056a959ae9.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="伊藤 舞音 倉本 千奈 仓本 千奈"><td><div class="cast-cell"><strong>伊藤 舞音</strong><span class="char-badge" style="--dot:#ff7f11" data-tw="倉本 千奈" data-cn="仓本 千奈">倉本 千奈</span></div></td><td><span class="count-pill">19</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-31c71d6e15fb8245.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-31c71d6e15fb8245.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="天音 ゆかり 雨夜 燕 雨夜 燕"><td><div class="cast-cell"><strong>天音 ゆかり</strong><span class="char-badge" style="--dot:#5c6bc0" data-tw="雨夜 燕" data-cn="雨夜 燕">雨夜 燕</span></div></td><td><span class="count-pill">29</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-a18009ce787a6d37.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-a18009ce787a6d37.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="学園アイドルマスター 學園偶像大師（全體／官方） 学园偶像大师（全体／官方）"><td><div class="cast-cell"><strong>学園アイドルマスター</strong><span class="char-badge" style="--dot:#ff5722" data-tw="學園偶像大師（全體／官方）" data-cn="学园偶像大师（全体／官方）">學園偶像大師（全體／官方）</span></div></td><td><span class="count-pill">14</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-6eccfa78d64bf608.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-6eccfa78d64bf608.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="小鹿 なお 月村 手毬 月村 手毬"><td><div class="cast-cell"><strong>小鹿 なお</strong><span class="char-badge" style="--dot:#2b7de9" data-tw="月村 手毬" data-cn="月村 手毬">月村 手毬</span></div></td><td><span class="count-pill">9</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-745aa72c7054c1d3.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-745aa72c7054c1d3.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="川村 玲奈 篠澤 廣 筱泽 广"><td><div class="cast-cell"><strong>川村 玲奈</strong><span class="char-badge" style="--dot:#00a896" data-tw="篠澤 廣" data-cn="筱泽 广">篠澤 廣</span></div></td><td><span class="count-pill">17</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-3d62047b1644577b.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-3d62047b1644577b.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="春咲 暖 秦谷 美鈴 秦谷 美铃"><td><div class="cast-cell"><strong>春咲 暖</strong><span class="char-badge" style="--dot:#6c8ebf" data-tw="秦谷 美鈴" data-cn="秦谷 美铃">秦谷 美鈴</span></div></td><td><span class="count-pill">15</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-4ca3d348859e54ac.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-4ca3d348859e54ac.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="村田 綾香 真城 優 真城 优"><td><div class="cast-cell"><strong>村田 綾香</strong><span class="char-badge" style="--dot:#4caf50" data-tw="真城 優" data-cn="真城 优">真城 優</span></div></td><td><span class="count-pill">6</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-c18dea9ef02fd63d.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-c18dea9ef02fd63d.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="松田 彩音 花海 佑芽 花海 佑芽"><td><div class="cast-cell"><strong>松田 彩音</strong><span class="char-badge" style="--dot:#e76f51" data-tw="花海 佑芽" data-cn="花海 佑芽">花海 佑芽</span></div></td><td><span class="count-pill">9</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-7334b0cf47dc0cd1.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-7334b0cf47dc0cd1.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="浅見 香月 賀陽 燐羽 贺阳 燐羽"><td><div class="cast-cell"><strong>浅見 香月</strong><span class="char-badge" style="--dot:#ab47bc" data-tw="賀陽 燐羽" data-cn="贺阳 燐羽">賀陽 燐羽</span></div></td><td><span class="count-pill">7</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-6828f664f3dbb98d.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-6828f664f3dbb98d.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="湊 みや 紫雲 清夏 紫云 清夏"><td><div class="cast-cell"><strong>湊 みや</strong><span class="char-badge" style="--dot:#5bc0be" data-tw="紫雲 清夏" data-cn="紫云 清夏">紫雲 清夏</span></div></td><td><span class="count-pill">22</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-8087273be8fa38d0.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-8087273be8fa38d0.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="花岩 香奈 葛城 莉莉婭 葛城 莉莉娅"><td><div class="cast-cell"><strong>花岩 香奈</strong><span class="char-badge" style="--dot:#56b4e9" data-tw="葛城 莉莉婭" data-cn="葛城 莉莉娅">葛城 莉莉婭</span></div></td><td><span class="count-pill">16</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-658f49d479bba61d.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-658f49d479bba61d.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="薄井 友里 姬崎 莉波 姬崎 莉波"><td><div class="cast-cell"><strong>薄井 友里</strong><span class="char-badge" style="--dot:#f48fb1" data-tw="姬崎 莉波" data-cn="姬崎 莉波">姬崎 莉波</span></div></td><td><span class="count-pill">18</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-5381eae1053a6ac4.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-5381eae1053a6ac4.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="長月 あおい 花海 咲季 花海 咲季"><td><div class="cast-cell"><strong>長月 あおい</strong><span class="char-badge" style="--dot:#e63946" data-tw="花海 咲季" data-cn="花海 咲季">花海 咲季</span></div></td><td><span class="count-pill">13</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-8dfc91bc8f2db242.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-8dfc91bc8f2db242.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="陽高 真白 十王 星南 十王 星南"><td><div class="cast-cell"><strong>陽高 真白</strong><span class="char-badge" style="--dot:#d4af37" data-tw="十王 星南" data-cn="十王 星南">十王 星南</span></div></td><td><span class="count-pill">8</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-1acc688e5b3a308f.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-1acc688e5b3a308f.ics" data-i18n="copy_url">複製連結</button></td></tr>
+<tr data-search="飯田 ヒカル 藤田 琴音 藤田 琴音"><td><div class="cast-cell"><strong>飯田 ヒカル</strong><span class="char-badge" style="--dot:#f4b400" data-tw="藤田 琴音" data-cn="藤田 琴音">藤田 琴音</span></div></td><td><span class="count-pill">20</span></td><td class="actions-cell"><a class="btn btn-primary" href="cast-d7459bbddbe32666.ics" data-i18n="subscribe_ics">訂閱 ICS</a><button type="button" class="btn btn-outline copy-btn" data-file="cast-d7459bbddbe32666.ics" data-i18n="copy_url">複製連結</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    const I18N = {
+      "zh-TW": {
+        htmlLang: "zh-Hant",
+        docTitle: "學園偶像大師聲優獨立日曆",
+        back_home: "← 返回主頁（總日曆與完整面板）",
+        title: "學マス聲優獨立 ICS 日曆",
+        desc: "依原始日曆中的「出演者」自動拆分，每位聲優可單獨訂閱；多人共演的節目會同時出現在各自的日曆中。",
+        date_prefix: "資料日期（日本時間）：",
+        date_suffix: "源日曆更新後會自動同步最新節目。",
+        search_ph: "搜尋聲優或角色名稱...",
+        th_cast: "聲優／角色",
+        th_count: "活動數",
+        th_link: "訂閱與連結",
+        subscribe_ics: "訂閱 ICS",
+        copy_url: "複製連結",
+        copied: "已複製！"
+      },
+      "zh-CN": {
+        htmlLang: "zh-Hans",
+        docTitle: "学园偶像大师声优独立日历",
+        back_home: "← 返回主页（总日历与完整面板）",
+        title: "学マス声优独立 ICS 日历",
+        desc: "按原始日历中的「出演者」自动拆分，每位声优可单独订阅；多人出演的节目会出现在各自的日历中。",
+        date_prefix: "数据日期（日本时间）：",
+        date_suffix: "源日历更新后会自动同步最新节目。",
+        search_ph: "搜索声优或角色名称...",
+        th_cast: "声优／角色",
+        th_count: "事项数",
+        th_link: "订阅与链接",
+        subscribe_ics: "订阅 ICS",
+        copy_url: "复制链接",
+        copied: "已复制！"
+      }
+    };
+    let currentLang = localStorage.getItem("gakumas_lang") || ((navigator.language || "").toLowerCase().includes("cn") || (navigator.language || "").toLowerCase().includes("hans") ? "zh-CN" : "zh-TW");
+    function applyLang(lang) {
+      if (!I18N[lang]) lang = "zh-TW";
+      currentLang = lang;
+      localStorage.setItem("gakumas_lang", lang);
+      const dict = I18N[lang];
+      document.documentElement.lang = dict.htmlLang;
+      document.title = dict.docTitle;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const k = el.getAttribute("data-i18n");
+        if (dict[k]) el.textContent = dict[k];
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const k = el.getAttribute("data-i18n-placeholder");
+        if (dict[k]) el.placeholder = dict[k];
+      });
+      document.querySelectorAll(".char-badge").forEach(el => {
+        el.textContent = lang === "zh-CN" ? el.getAttribute("data-cn") : el.getAttribute("data-tw");
+      });
+      document.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-lang") === lang);
+      });
+    }
+    document.querySelectorAll(".lang-btn").forEach(btn => {
+      btn.addEventListener("click", () => applyLang(btn.getAttribute("data-lang")));
+    });
+    document.querySelectorAll(".copy-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const rel = btn.getAttribute("data-file");
+        const fullUrl = new URL(rel, window.location.href).href;
+        try {
+          await navigator.clipboard.writeText(fullUrl);
+          btn.textContent = I18N[currentLang].copied;
+          setTimeout(() => { btn.textContent = I18N[currentLang].copy_url; }, 1500);
+        } catch (e) {
+          window.prompt("Copy ICS URL:", fullUrl);
+        }
+      });
+    });
+    document.getElementById("searchInput").addEventListener("input", e => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll("#castTableBody tr").forEach(tr => {
+        const hay = tr.getAttribute("data-search") || "";
+        tr.style.display = (!q || hay.includes(q)) ? "" : "none";
+      });
+    });
+    applyLang(currentLang);
+  </script>
+</body>
+</html>

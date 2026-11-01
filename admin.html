@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理後台 | 學園偶像大師 聲優節目日曆</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-subtle: #f8fafc;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --primary: #ff5a36;
+      --primary-hover: #e04826;
+      --radius: 14px;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font: 15px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 4rem;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .badge-admin {
+      font-size: 0.75rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      background: #0f172a;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .back-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .back-link:hover { color: var(--primary); }
+
+    .lang-switcher {
+      display: inline-flex;
+      background: #e2e8f0;
+      padding: 3px;
+      border-radius: 999px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.25rem;
+    }
+
+    .card h2 {
+      margin: 0 0 1rem;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+      display: block;
+    }
+
+    .stat-val {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+      display: block;
+      word-break: break-all;
+    }
+
+    .step-banner {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .status-pill.ok { background: #dcfce7; color: #15803d; }
+    .status-pill.running { background: #fef3c7; color: #b45309; }
+    .status-pill.error { background: #fee2e2; color: #b91c1c; }
+    .status-pill.idle { background: #e2e8f0; color: #475569; }
+
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .dropzone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 1.25rem;
+      background: var(--surface-subtle);
+      margin-bottom: 1rem;
+      transition: all 0.15s ease;
+    }
+
+    .dropzone.dragover {
+      border-color: var(--primary);
+      background: #fff7ed;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.15rem 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 9px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+    .btn-secondary {
+      background: var(--surface);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--surface-subtle); }
+
+    .input-field {
+      padding: 0.55rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 0.9rem;
+      background: var(--surface);
+    }
+
+    /* Terminal Log Viewer */
+    .log-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .log-terminal {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      padding: 1rem 1.15rem;
+      border-radius: 12px;
+      height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid #1e293b;
+    }
+
+    .log-line-error { color: #fca5a5; }
+    .log-line-stage { color: #fde047; font-weight: 600; }
+    .log-line-ok { color: #86efac; }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #0f172a;
+      color: #fff;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <h1>
+          <span data-i18n="admin_title">學マス日曆 系統管理後台</span>
+          <span class="badge-admin">/admin</span>
+        </h1>
+      </div>
+      <div class="header-right">
+        <a class="back-link" href="/" data-i18n="back_public">← 返回公開訂閱首頁</a>
+        <div class="lang-switcher">
+          <button type="button" class="lang-btn active" data-lang="zh-TW">繁體中文</button>
+          <button type="button" class="lang-btn" data-lang="zh-CN">简体中文</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Status & Schedule Card -->
+    <section class="card">
+      <h2>
+        <span data-i18n="sec_status">📊 排程與同步狀態</span>
+        <span class="status-pill ok" id="statusPill">OK</span>
+      </h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-label" data-i18n="lbl_interval">過期過濾與整理頻率</span>
+          <span class="stat-val" id="valInterval">每 3 小時</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label" data-i18n="lbl_next_run">下次自動整理時間</span>
+          <span class="stat-val" id="valNextRun">-</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label" data-i18n="lbl_last_attempt">上次執行時間</span>
+          <span class="stat-val" id="valLastAttempt">-</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label" data-i18n="lbl_last_success">上次成功時間</span>
+          <span class="stat-val" id="valLastSuccess">-</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label" data-i18n="lbl_events">目前總行程數 / 聲優數</span>
+          <span class="stat-val" id="valCounts">-</span>
+        </div>
+      </div>
+      <div class="step-banner" id="stepBanner">
+        <span>⚡</span>
+        <span id="currentStepText">待機中</span>
+      </div>
+    </section>
+
+    <!-- Upload & Retrigger Card -->
+    <section class="card">
+      <h2 data-i18n="sec_actions">📤 上傳更新 calendar.ics 與重新拆分 (Retrigger)</h2>
+
+      <div class="actions-row" style="margin-bottom: 1rem;">
+        <label style="font-weight:600;font-size:0.9rem;" data-i18n="lbl_token">管理金鑰 (ADMIN_TOKEN)：</label>
+        <input type="password" id="adminToken" class="input-field" style="min-width:260px;" placeholder="若 docker-compose 未設定可留空" data-i18n-placeholder="ph_token">
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <p style="margin:0 0 0.65rem;color:var(--muted);font-size:0.92rem;" data-i18n="upload_desc">
+          將新的 calendar.ics 拖曳至此處，或點擊下方選擇檔案上傳，伺服器會自動驗證並立即重新拆分全部 16 位聲優的獨立 ICS：
+        </p>
+        <div class="actions-row">
+          <input type="file" id="icsFile" accept=".ics,text/calendar" class="input-field">
+          <button type="button" class="btn btn-primary" id="btnUploadIcs" data-i18n="btn_upload">📤 上傳 calendar.ics 並立即拆分</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="actions-row">
+        <button type="button" class="btn btn-secondary" id="btnRetriggerSplit" data-i18n="btn_retrigger_split">
+          🔄 立即重新拆分現有 calendar.ics（依今日日本時間過濾過期活動）
+        </button>
+        <button type="button" class="btn btn-secondary" id="btnRetriggerFull" style="display:none;" data-i18n="btn_retrigger_full">
+          🚀 執行 Playwright 遠端抓取 + 拆分
+        </button>
+      </div>
+    </section>
+
+    <!-- Live Execution Logs -->
+    <section class="card">
+      <div class="log-toolbar">
+        <h2 style="margin:0;" data-i18n="sec_logs">🖥️ 系統即時執行日誌 (/data/sync.log)</h2>
+        <div class="actions-row">
+          <label style="font-size:0.85rem;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:0.35rem;">
+            <input type="checkbox" id="autoScrollCheck" checked>
+            <span data-i18n="lbl_autoscroll">自動捲動至底部</span>
+          </label>
+          <button type="button" class="btn btn-secondary" style="padding:0.35rem 0.75rem;font-size:0.82rem;" id="btnRefreshLogs" data-i18n="btn_refresh_log">重新整理日誌</button>
+          <button type="button" class="btn btn-secondary" style="padding:0.35rem 0.75rem;font-size:0.82rem;" id="btnClearLogs" data-i18n="btn_clear_log">清空日誌</button>
+        </div>
+      </div>
+      <div class="log-terminal" id="logTerminal">載入日誌中...</div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const I18N = {
+      "zh-TW": {
+        htmlLang: "zh-Hant",
+        docTitle: "管理後台 | 學園偶像大師 聲優節目日曆",
+        admin_title: "學マス日曆 系統管理後台",
+        back_public: "← 返回公開訂閱首頁",
+        sec_status: "📊 排程與同步狀態",
+        lbl_interval: "過期過濾與整理頻率",
+        lbl_next_run: "下次自動整理時間",
+        lbl_last_attempt: "上次執行時間",
+        lbl_last_success: "上次成功時間",
+        lbl_events: "目前總行程數 / 聲優數",
+        sec_actions: "📤 上傳更新 calendar.ics 與重新拆分 (Retrigger)",
+        lbl_token: "管理金鑰 (ADMIN_TOKEN)：",
+        ph_token: "若 docker-compose 未設定可留空",
+        upload_desc: "將新的 calendar.ics 拖曳至此處，或點擊下方選擇檔案上傳，伺服器會自動驗證並立即重新拆分全部 16 位聲優的獨立 ICS：",
+        btn_upload: "📤 上傳 calendar.ics 並立即拆分",
+        btn_retrigger_split: "🔄 立即重新拆分現有 calendar.ics（依今日日本時間過濾過期活動）",
+        btn_retrigger_full: "🚀 執行 Playwright 遠端抓取 + 拆分",
+        sec_logs: "🖥️ 系統即時執行日誌 (/data/sync.log)",
+        lbl_autoscroll: "自動捲動至底部",
+        btn_refresh_log: "重新整理日誌",
+        btn_clear_log: "清空日誌",
+        unit_hours: "每 {h} 小時自動整理",
+        status_running: "執行中 (RUNNING)",
+        status_ok: "正常就緒 (OK)",
+        status_error: "上次失敗 (ERROR)",
+        status_idle: "待機中 (IDLE)",
+        toast_triggered: "已觸發重新拆分！請查看下方即時日誌",
+        toast_uploaded: "上傳並拆分完成！",
+        toast_cleared: "已清空日誌",
+        toast_no_file: "請先選擇 .ics 檔案"
+      },
+      "zh-CN": {
+        htmlLang: "zh-Hans",
+        docTitle: "管理后台 | 学园偶像大师 声优节目日历",
+        admin_title: "学マス日历 系统管理后台",
+        back_public: "← 返回公开订阅首页",
+        sec_status: "📊 定时任务与同步状态",
+        lbl_interval: "过期过滤与整理频率",
+        lbl_next_run: "下次自动整理时间",
+        lbl_last_attempt: "上次执行时间",
+        lbl_last_success: "上次成功时间",
+        lbl_events: "当前总日程数 / 声优数",
+        sec_actions: "📤 上传更新 calendar.ics 与重新拆分 (Retrigger)",
+        lbl_token: "管理密钥 (ADMIN_TOKEN)：",
+        ph_token: "若 docker-compose 未设置可留空",
+        upload_desc: "将新的 calendar.ics 拖拽至此处，或点击下方选择文件上传，服务器会自动验证并立即重新拆分全部 16 位声优的独立 ICS：",
+        btn_upload: "📤 上传 calendar.ics 并立即拆分",
+        btn_retrigger_split: "🔄 立即重新拆分现有 calendar.ics（按今日日本时间过滤过期活动）",
+        btn_retrigger_full: "🚀 执行 Playwright 远程抓取 + 拆分",
+        sec_logs: "🖥️ 系统实时执行日志 (/data/sync.log)",
+        lbl_autoscroll: "自动滚动至底部",
+        btn_refresh_log: "刷新日志",
+        btn_clear_log: "清空日志",
+        unit_hours: "每 {h} 小时自动整理",
+        status_running: "执行中 (RUNNING)",
+        status_ok: "正常就绪 (OK)",
+        status_error: "上次失败 (ERROR)",
+        status_idle: "待机中 (IDLE)",
+        toast_triggered: "已触发重新拆分！请查看下方实时日志",
+        toast_uploaded: "上传并拆分完成！",
+        toast_cleared: "已清空日志",
+        toast_no_file: "请先选择 .ics 文件"
+      }
+    };
+
+    let currentLang = localStorage.getItem("gakumas_lang") || (
+      ((navigator.language || "").toLowerCase().includes("cn") || (navigator.language || "").toLowerCase().includes("hans"))
+        ? "zh-CN"
+        : "zh-TW"
+    );
+    let lastStatusData = null;
+    let pollTimer = null;
+
+    const tokenInput = document.getElementById("adminToken");
+    tokenInput.value = sessionStorage.getItem("gakumas_admin_token") || "";
+    tokenInput.addEventListener("input", () => {
+      sessionStorage.setItem("gakumas_admin_token", tokenInput.value.trim());
+    });
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return "-";
+      try {
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return isoStr;
+        return d.toLocaleString(currentLang === "zh-CN" ? "zh-CN" : "zh-TW", { hour12: false });
+      } catch (_) {
+        return isoStr;
+      }
+    }
+
+    function applyLang(lang) {
+      if (!I18N[lang]) lang = "zh-TW";
+      currentLang = lang;
+      localStorage.setItem("gakumas_lang", lang);
+      const dict = I18N[lang];
+      document.documentElement.lang = dict.htmlLang;
+      document.title = dict.docTitle;
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const k = el.getAttribute("data-i18n");
+        if (dict[k]) el.textContent = dict[k];
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const k = el.getAttribute("data-i18n-placeholder");
+        if (dict[k]) el.placeholder = dict[k];
+      });
+      document.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-lang") === lang);
+      });
+      if (lastStatusData) renderStatus(lastStatusData);
+    }
+
+    function renderStatus(data) {
+      lastStatusData = data;
+      const dict = I18N[currentLang];
+      const sync = data.sync || {};
+      const manifest = data.manifest || {};
+      const st = sync.status || "idle";
+
+      const pill = document.getElementById("statusPill");
+      pill.className = "status-pill " + (st === "running" ? "running" : st === "error" ? "error" : st === "ok" ? "ok" : "idle");
+      pill.textContent = st === "running" ? dict.status_running : st === "error" ? dict.status_error : st === "ok" ? dict.status_ok : dict.status_idle;
+
+      const hrs = sync.interval_hours ?? 3;
+      document.getElementById("valInterval").textContent = dict.unit_hours.replace("{h}", hrs);
+      document.getElementById("valNextRun").textContent = formatTime(sync.next_run_at);
+      document.getElementById("valLastAttempt").textContent = formatTime(sync.last_attempt_at);
+      document.getElementById("valLastSuccess").textContent = formatTime(sync.last_success_at);
+      document.getElementById("valCounts").textContent = `${manifest.source_event_count ?? 0} / ${(manifest.casts || []).length}`;
+
+      const stepText = sync.current_step || (sync.last_error ? `Error: ${sync.last_error}` : "Idle / Ready");
+      document.getElementById("currentStepText").textContent = stepText;
+
+      const isRunning = st === "running";
+      const btnFull = document.getElementById("btnRetriggerFull");
+      btnFull.style.display = sync.playwright_enabled ? "" : "none";
+      btnFull.disabled = isRunning;
+      document.getElementById("btnRetriggerSplit").disabled = isRunning;
+    }
+
+    function renderLogs(lines) {
+      const term = document.getElementById("logTerminal");
+      const wasAtBottom = term.scrollHeight - term.scrollTop - term.clientHeight < 40;
+      if (!lines || !lines.length) {
+        term.textContent = "(尚無日誌記錄 / 暂无日志记录)";
+        return;
+      }
+      term.innerHTML = lines.map(line => {
+        const esc = String(line)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        if (esc.includes("[ERROR]") || esc.includes("[Browser Error]") || esc.includes("failed")) {
+          return `<div class="log-line-error">${esc}</div>`;
+        }
+        if (esc.includes("[Stage 1]") || esc.includes("[Stage 2]") || esc.includes("[Playwright]") || esc.includes("[Upload]")) {
+          return `<div class="log-line-stage">${esc}</div>`;
+        }
+        if (esc.includes("成功") || esc.includes("完成")) {
+          return `<div class="log-line-ok">${esc}</div>`;
+        }
+        return `<div>${esc}</div>`;
+      }).join("");
+
+      if (document.getElementById("autoScrollCheck").checked || wasAtBottom) {
+        term.scrollTop = term.scrollHeight;
+      }
+    }
+
+    async function pollAdminData() {
+      try {
+        const res = await fetch("/api/logs", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          renderStatus(data);
+          renderLogs(data.logs || []);
+          const isRunning = data.sync && data.sync.status === "running";
+          clearTimeout(pollTimer);
+          pollTimer = setTimeout(pollAdminData, isRunning ? 1000 : 4000);
+          return;
+        }
+      } catch (_) {}
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(pollAdminData, 5000);
+    }
+
+    async function triggerRefresh(fetchRemote) {
+      const headers = { "Content-Type": "application/json" };
+      const token = tokenInput.value.trim();
+      if (token) headers["X-Admin-Token"] = token;
+      try {
+        const res = await fetch("/api/refresh", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ fetch_remote: fetchRemote })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(data.error || "Trigger failed");
+          return;
+        }
+        showToast(I18N[currentLang].toast_triggered);
+        pollAdminData();
+      } catch (e) {
+        showToast("Request failed: " + e.message);
+      }
+    }
+
+    async function uploadFileObject(file) {
+      if (!file) {
+        showToast(I18N[currentLang].toast_no_file);
+        return;
+      }
+      const text = await file.text();
+      const headers = { "Content-Type": "application/json" };
+      const token = tokenInput.value.trim();
+      if (token) headers["X-Admin-Token"] = token;
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ ics: text })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "Upload failed");
+        return;
+      }
+      showToast(I18N[currentLang].toast_uploaded);
+      document.getElementById("icsFile").value = "";
+      pollAdminData();
+    }
+
+    document.getElementById("btnRetriggerFull").addEventListener("click", () => triggerRefresh(true));
+    document.getElementById("btnRetriggerSplit").addEventListener("click", () => triggerRefresh(false));
+    document.getElementById("btnRefreshLogs").addEventListener("click", pollAdminData);
+
+    document.getElementById("btnClearLogs").addEventListener("click", async () => {
+      const headers = { "Content-Type": "application/json" };
+      const token = tokenInput.value.trim();
+      if (token) headers["X-Admin-Token"] = token;
+      const res = await fetch("/api/logs/clear", { method: "POST", headers, body: "{}" });
+      if (res.ok) {
+        showToast(I18N[currentLang].toast_cleared);
+        pollAdminData();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        showToast(d.error || "Failed to clear logs");
+      }
+    });
+
+    document.getElementById("btnUploadIcs").addEventListener("click", () => {
+      const fileEl = document.getElementById("icsFile");
+      uploadFileObject(fileEl.files && fileEl.files[0]);
+    });
+
+    const dz = document.getElementById("dropzone");
+    dz.addEventListener("dragover", e => {
+      e.preventDefault();
+      dz.classList.add("dragover");
+    });
+    dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
+    dz.addEventListener("drop", e => {
+      e.preventDefault();
+      dz.classList.remove("dragover");
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        uploadFileObject(e.dataTransfer.files[0]);
+      }
+    });
+
+    document.querySelectorAll(".lang-btn").forEach(btn => {
+      btn.addEventListener("click", () => applyLang(btn.getAttribute("data-lang")));
+    });
+
+    applyLang(currentLang);
+    pollAdminData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+services:
+  gakumas-calendar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gakumas-calendar-ics
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3002}:3002"
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Tokyo
+      - PORT=3002
+      - DATA_DIR=/data
+      # 是否啟用背景定時自動整理與過期活動過濾 (true / false)
+      - AUTO_REFRESH=${AUTO_REFRESH:-true}
+      # 自動整理間隔（小時，預設每 3 小時依日本時間過濾過期活動並重新拆分聲優日曆）
+      - REFRESH_INTERVAL_HOURS=${REFRESH_INTERVAL_HOURS:-3}
+      # 停用容器內無頭瀏覽器抓取，改由 /admin 後台上傳 calendar.ics 並自動拆分
+      - ENABLE_PLAYWRIGHT_FETCH=${ENABLE_PLAYWRIGHT_FETCH:-false}
+      # 選填：固定公開網址 (例如 https://cal.example.com)，留空則自動依瀏覽器請求的 Host 判斷
+      - BASE_URL=${BASE_URL:-}
+      # 選填：/admin 後台「手動上傳 ICS」與「重新拆分」的管理金鑰，留空則不需密碼
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}

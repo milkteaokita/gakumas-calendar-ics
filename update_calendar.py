@@ -6,6 +6,7 @@ The script does not bypass App Check or Firestore security rules.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 import hashlib
 import json
 import os
@@ -158,43 +159,75 @@ def serialize_events(events: list[dict], *, today: date | None = None, now: date
     return content.encode("utf-8"), used
 
 
-def fetch_events(*, visible: bool = False, months: int = 18) -> list[dict]:
+def _format_target_ym(base_dt: datetime, offset: int) -> str:
+    total_month = (base_dt.year * 12 + (base_dt.month - 1)) + offset
+    y = total_month // 12
+    m = (total_month % 12) + 1
+    return f"{y:04d}-{m:02d}"
+
+
+def fetch_events(
+    *,
+    visible: bool = False,
+    months: int = 18,
+    logger: Callable[[str], None] | None = None,
+) -> list[dict]:
     """Read the original site's module after its initial server query finishes.
 
     No bundle replacement, credential copying, or security-check changes.
     Any denied query aborts the export instead of publishing partial results.
     """
-    from playwright.sync_api import sync_playwright
+    def log(msg: str) -> None:
+        if logger is not None:
+            logger(msg)
+        else:
+            print(msg, flush=True)
 
+    from playwright.sync_api import sync_playwright
+    import time as clock
+
+    log(f"[Playwright] 正在啟動 Chromium 瀏覽器 (headless={not visible})...")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=not visible)
         context = browser.new_context(locale="ja-JP", timezone_id="Asia/Tokyo")
         page = context.new_page()
-        errors = []
+        errors: list[str] = []
         ready = {"server": False}
 
         def on_console(msg):
             message = msg.text
             if "サーバーの最新データで更新しました" in message:
                 ready["server"] = True
+                log(f"[Browser Console] 收到原站資料更新確認: {message}")
             if msg.type == "error" and any(word in message for word in (
                 "Firestore", "FirebaseError", "permission-denied", "AppCheck", "appCheck")):
-                errors.append(message[:800])
+                short_err = message[:800]
+                errors.append(short_err)
+                log(f"[Browser Error] {short_err}")
 
         page.on("console", on_console)
         try:
-            print("Stage 1: loading the unmodified calendar page", flush=True)
+            log(f"[Stage 1] 正在載入目標網頁: {SITE}")
             page.goto(SITE, wait_until="domcontentloaded", timeout=60000)
-            import time as clock
-            deadline = clock.monotonic() + 60
+            log("[Stage 1] DOM 載入完成，正在等待網站首次 Firestore 查詢完成 (最多 60 秒)...")
+            start_wait = clock.monotonic()
+            deadline = start_wait + 60
+            last_heartbeat = start_wait
             while not ready["server"]:
                 if errors:
                     raise RuntimeError("Initial website query failed: " + errors[-1])
-                if clock.monotonic() >= deadline:
+                now_mono = clock.monotonic()
+                if now_mono >= deadline:
                     raise RuntimeError("No confirmed initial server response within 60 seconds")
+                if now_mono - last_heartbeat >= 5.0:
+                    elapsed = int(now_mono - start_wait)
+                    log(f"[Stage 1] 等待原站伺服器回應中... (已耗時 {elapsed}s / 60s)")
+                    last_heartbeat = now_mono
                 page.wait_for_timeout(250)
-            print("Stage 1: normal website server query succeeded", flush=True)
-            page.evaluate(r"""async () => {
+
+            elapsed_s1 = clock.monotonic() - start_wait
+            log(f"[Stage 1] 網站首次伺服器查詢成功 (耗時 {elapsed_s1:.1f}s)，正在連接前端行程模組...")
+            module_info = page.evaluate(r"""async () => {
                 const script = [...document.querySelectorAll('script[type="module"][src]')]
                     .find(el => /\/assets\/main-[^/]+\.js(?:\?.*)?$/.test(el.src));
                 if (!script) throw Error('Website main module not found');
@@ -204,24 +237,42 @@ def fetch_events(*, visible: bool = False, months: int = 18) -> list[dict]:
                 if (!Array.isArray(state.events?.value) || typeof state.loadVisibleMonths !== 'function')
                     throw Error('Website calendar state changed');
                 window.__ICS_READ_STATE__ = state;
+                return { scriptSrc: script.src, initialCount: state.events.value.length };
             }""")
+            log(
+                f"[Stage 1] 已掛載前端模組 ({module_info.get('scriptSrc', 'main.js')})，"
+                f"初始視窗含 {module_info.get('initialCount', 0)} 筆行程"
+            )
+
+            now_jst = datetime.now(JST)
+            total_steps = months + 1
+            log(f"[Stage 2] 開始逐月讀取行程 (共 {total_steps} 個月份區間: offset -1 ~ {months - 1})...")
             # One preceding month retains ongoing events that began last month.
-            for offset in range(-1, months):
-                print(f"Stage 2: reading month offset {offset}", flush=True)
-                page.evaluate("""async offset => {
+            for idx, offset in enumerate(range(-1, months), start=1):
+                ym_str = _format_target_ym(now_jst, offset)
+                t0 = clock.monotonic()
+                count_now = page.evaluate("""async offset => {
                     const state = window.__ICS_READ_STATE__;
                     const now = new Date();
                     const month = new Date(now.getFullYear(), now.getMonth() + offset, 1);
                     await state.loadVisibleMonths(month, month);
+                    return state.events.value.length;
                 }""", offset)
+                dt_ms = int((clock.monotonic() - t0) * 1000)
                 if errors:
-                    raise RuntimeError(f"Month offset {offset} failed: " + errors[-1])
+                    raise RuntimeError(f"Month offset {offset} ({ym_str}) failed: " + errors[-1])
+                log(
+                    f"[Stage 2] ({idx}/{total_steps}) 讀取月份 {ym_str} (offset={offset:+d}) 完成 "
+                    f"[{dt_ms}ms] -> 累計快取 {count_now} 筆行程"
+                )
+
             events = page.evaluate("JSON.parse(JSON.stringify(window.__ICS_READ_STATE__.events.value))")
             if not isinstance(events, list) or not events:
                 raise RuntimeError("No schedule data; preserving previous calendar")
-            print(f"Stage 2: received {len(events)} source events", flush=True)
+            log(f"[Stage 2] 全部月份讀取完成！共取得 {len(events)} 筆原始行程資料")
             return events
         finally:
+            log("[Playwright] 正在關閉 Chromium 瀏覽器...")
             context.close()
             browser.close()
 

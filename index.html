@@ -1,12 +1,943 @@
-
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>学マス日历</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學園偶像大師 聲優節目日曆訂閱 | 学マス声优节目日历订阅</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --primary: #ff5a36;
+      --primary-hover: #e04826;
+      --primary-soft: #fff7ed;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font: 16px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 4rem;
+    }
+
+    /* Header */
+    .site-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.75rem;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-tag {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid #fed7aa;
+    }
+
+    .brand-sub {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .lang-switcher {
+      display: inline-flex;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 999px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Hero Card: Main Calendar */
+    .hero-card {
+      background: linear-gradient(135deg, #ffffff 0%, #fffaf5 100%);
+      border: 1px solid #fed7aa;
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .hero-header h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .hero-header p {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .url-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9rem;
+      color: #334155;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.05rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-subtle);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.82rem;
+      border-radius: 8px;
+    }
+
+    /* Status & Admin Bar */
+    .status-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .status-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .stats-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem 2rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--surface-subtle);
+      color: var(--muted);
+    }
+
+    .status-badge.ok {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .status-badge.running {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .status-badge.error {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .upload-drawer {
+      display: none;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    .upload-drawer.open {
+      display: block;
+    }
+
+    .upload-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    .input-text {
+      padding: 0.55rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 0.9rem;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    /* Section Header & Filter Bar */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .section-head p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background: var(--surface);
+    }
+
+    .filter-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Voice Actor Cards Grid */
+    .casts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .cast-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.15rem 1.25rem;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.95rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .cast-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+    }
+
+    .cast-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .cast-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 0.3rem;
+    }
+
+    .char-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--surface-subtle);
+      color: #334155;
+    }
+
+    .char-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .event-count {
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: #c2410c;
+      white-space: nowrap;
+    }
+
+    .event-count.zero {
+      background: var(--surface-subtle);
+      color: var(--muted);
+    }
+
+    /* Guide Section */
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .guide-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+
+    .guide-card h3 {
+      margin: 0 0 0.6rem;
+      font-size: 1.05rem;
+    }
+
+    .guide-card ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .guide-card li + li {
+      margin-top: 0.35rem;
+    }
+
+    .site-footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .site-footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.7rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
 </head>
 <body>
-  <h1>学マス声优日历</h1>
-  <p><a href="calendar.ics">下载或订阅 ICS 日历</a></p>
+  <div class="container">
+    <!-- Header -->
+    <header class="site-header">
+      <div>
+        <h1 class="brand-title">
+          <span data-i18n="site_title">學園偶像大師 聲優節目日曆</span>
+          <span class="brand-tag">ICS Feed</span>
+        </h1>
+        <p class="brand-sub" data-i18n="site_subtitle">
+          自動同步學マス聲優廣播、生放送、舞台與活動行程，支援 Google / Apple / Outlook 日曆訂閱與各聲優獨立分流。
+        </p>
+      </div>
+      <div class="lang-switcher" role="group" aria-label="語言切換 / 语言切换">
+        <button type="button" class="lang-btn active" data-lang="zh-TW">繁體中文</button>
+        <button type="button" class="lang-btn" data-lang="zh-CN">简体中文</button>
+      </div>
+    </header>
+
+    <!-- Main All-in-One Calendar -->
+    <section class="hero-card">
+      <div class="hero-header">
+        <div>
+          <h2 data-i18n="main_cal_title">📅 總日曆訂閱（包含所有聲優與官方行程）</h2>
+          <p data-i18n="main_cal_desc">適合想一次掌握所有學園偶像大師相關節目與活動的製作人。</p>
+        </div>
+      </div>
+      <div class="url-box" id="mainCalUrlBox">calendar.ics</div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" id="copyMainBtn" data-i18n="btn_copy_main">複製訂閱連結</button>
+        <a class="btn btn-secondary" id="webcalMainBtn" href="calendar.ics" data-i18n="btn_webcal">系統日曆一鍵訂閱 (webcal)</a>
+        <a class="btn btn-secondary" id="gcalMainBtn" href="calendar.ics" target="_blank" rel="noopener" data-i18n="btn_gcal">加入 Google 日曆</a>
+        <a class="btn btn-secondary" href="calendar.ics" download="calendar.ics" data-i18n="btn_download_ics">下載 .ics 檔案</a>
+      </div>
+    </section>
+
+    <!-- Server Sync & Status Panel -->
+    <section class="status-panel">
+      <div class="status-top">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="stat_date">資料基準日 (JST)</span>
+            <span class="stat-value" id="statDate">2026-11-01</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="stat_events">總行程數量</span>
+            <span class="stat-value" id="statEvents">181</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="stat_casts">獨立聲優日曆</span>
+            <span class="stat-value" id="statCasts">16</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label" data-i18n="stat_sync">服務狀態</span>
+            <span class="stat-value"><span class="status-badge ok" id="syncBadge" data-i18n="status_ready">已就緒</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Individual Voice Actor Feeds -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="cast_section_title">🎙️ 依聲優獨立訂閱</h2>
+          <p data-i18n="cast_section_desc">每位聲優皆有固定專屬的 ICS 網址；即使暫時無近期行程也會保留空日曆，不會導致訂閱失效 (404)。</p>
+        </div>
+        <a href="casts/" class="btn btn-secondary btn-sm" data-i18n="btn_simple_table">切換至簡易表格頁 (/casts/)</a>
+      </div>
+
+      <div class="filter-bar">
+        <input type="search" id="castSearchInput" class="search-box" placeholder="搜尋聲優姓名或角色名稱（例：花岩香奈、葛城莉莉婭、藤田琴音）..." data-i18n-placeholder="search_placeholder">
+        <label class="filter-check">
+          <input type="checkbox" id="onlyActiveCheck">
+          <span data-i18n="filter_active_only">僅顯示有近期活動</span>
+        </label>
+      </div>
+
+      <div class="casts-grid" id="castsGrid"></div>
+    </section>
+
+    <!-- Subscription Guide -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2 data-i18n="guide_title">💡 日曆訂閱教學</h2>
+          <p data-i18n="guide_subtitle">請使用「透過網址訂閱」而非直接匯入檔案，日曆應用程式才會定期自動同步最新行程。</p>
+        </div>
+      </div>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <h3 data-i18n="guide_gcal_title">Google 日曆 (網頁版)</h3>
+          <ol>
+            <li data-i18n="guide_gcal_1">點擊上方或任一聲優卡片的「複製訂閱連結」或「加入 Google 日曆」。</li>
+            <li data-i18n="guide_gcal_2">在 Google 日曆左側點選「其他日曆」旁的「＋」號 → 選擇「透過網址」。</li>
+            <li data-i18n="guide_gcal_3">貼上剛才複製的 .ics 網址並點擊「新增日曆」即可完成訂閱。</li>
+          </ol>
+        </div>
+        <div class="guide-card">
+          <h3 data-i18n="guide_apple_title">Apple 日曆 (iOS / macOS)</h3>
+          <ol>
+            <li data-i18n="guide_apple_1">直接點擊「系統日曆一鍵訂閱 (webcal)」，系統會自動喚起行事曆 App。</li>
+            <li data-i18n="guide_apple_2">或於 iPhone「設定 → 行事曆 → 帳號 → 加入帳號 → 其他 → 加入已訂閱的行事曆」貼上連結。</li>
+            <li data-i18n="guide_apple_3">可自訂重新整理頻率（建議設為每小時或每天）。</li>
+          </ol>
+        </div>
+        <div class="guide-card">
+          <h3 data-i18n="guide_docker_title">Linux Docker 自架說明</h3>
+          <ol>
+            <li data-i18n="guide_docker_1">本服務支援 Docker 容器化部署，內建背景排程自動更新與聲優分流。</li>
+            <li data-i18n="guide_docker_2">所有日曆資料持久化於 /data 目錄，重啟容器不會遺失現有訂閱與歷史聲優清單。</li>
+            <li data-i18n="guide_docker_3">若需立即更新或手動匯入新日曆，可直接使用本頁上方的管理工具。</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <p>
+        <span data-i18n="footer_source">行程資料來源：</span>
+        <a href="https://gakusei-cheer-portal.web.app/calendar" target="_blank" rel="noopener">Gakusei Cheer Portal</a>
+        ｜ <span data-i18n="footer_disclaimer">本專案為粉絲自製工具，與官方及原站無關聯。</span>
+      </p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toastMsg"></div>
+
+  <script>
+    const FALLBACK_MANIFEST = {
+      "source": "calendar.ics",
+      "generated_for_date_jst": "2026-11-01",
+      "source_event_count": 181,
+      "excluded_expired": 0,
+      "excluded_without_cast": 34,
+      "casts": [
+        {"name": "七瀬 つむぎ", "count": 14, "file": "cast-b44681056a959ae9.ics", "character_tw": "有村 麻央", "character_cn": "有村 麻央", "color": "#9b51e0"},
+        {"name": "伊藤 舞音", "count": 19, "file": "cast-31c71d6e15fb8245.ics", "character_tw": "倉本 千奈", "character_cn": "仓本 千奈", "color": "#ff7f11"},
+        {"name": "天音 ゆかり", "count": 29, "file": "cast-a18009ce787a6d37.ics", "character_tw": "雨夜 燕", "character_cn": "雨夜 燕", "color": "#5c6bc0"},
+        {"name": "学園アイドルマスター", "count": 14, "file": "cast-6eccfa78d64bf608.ics", "character_tw": "學園偶像大師（全體／官方）", "character_cn": "学园偶像大师（全体／官方）", "color": "#ff5722"},
+        {"name": "小鹿 なお", "count": 9, "file": "cast-745aa72c7054c1d3.ics", "character_tw": "月村 手毬", "character_cn": "月村 手毬", "color": "#2b7de9"},
+        {"name": "川村 玲奈", "count": 17, "file": "cast-3d62047b1644577b.ics", "character_tw": "篠澤 廣", "character_cn": "筱泽 广", "color": "#00a896"},
+        {"name": "春咲 暖", "count": 15, "file": "cast-4ca3d348859e54ac.ics", "character_tw": "秦谷 美鈴", "character_cn": "秦谷 美铃", "color": "#6c8ebf"},
+        {"name": "村田 綾香", "count": 6, "file": "cast-c18dea9ef02fd63d.ics", "character_tw": "真城 優", "character_cn": "真城 优", "color": "#4caf50"},
+        {"name": "松田 彩音", "count": 9, "file": "cast-7334b0cf47dc0cd1.ics", "character_tw": "花海 佑芽", "character_cn": "花海 佑芽", "color": "#e76f51"},
+        {"name": "浅見 香月", "count": 7, "file": "cast-6828f664f3dbb98d.ics", "character_tw": "賀陽 燐羽", "character_cn": "贺阳 燐羽", "color": "#ab47bc"},
+        {"name": "湊 みや", "count": 22, "file": "cast-8087273be8fa38d0.ics", "character_tw": "紫雲 清夏", "character_cn": "紫云 清夏", "color": "#5bc0be"},
+        {"name": "花岩 香奈", "count": 16, "file": "cast-658f49d479bba61d.ics", "character_tw": "葛城 莉莉婭", "character_cn": "葛城 莉莉娅", "color": "#56b4e9"},
+        {"name": "薄井 友里", "count": 18, "file": "cast-5381eae1053a6ac4.ics", "character_tw": "姬崎 莉波", "character_cn": "姬崎 莉波", "color": "#f48fb1"},
+        {"name": "長月 あおい", "count": 13, "file": "cast-8dfc91bc8f2db242.ics", "character_tw": "花海 咲季", "character_cn": "花海 咲季", "color": "#e63946"},
+        {"name": "陽高 真白", "count": 8, "file": "cast-1acc688e5b3a308f.ics", "character_tw": "十王 星南", "character_cn": "十王 星南", "color": "#d4af37"},
+        {"name": "飯田 ヒカル", "count": 20, "file": "cast-d7459bbddbe32666.ics", "character_tw": "藤田 琴音", "character_cn": "藤田 琴音", "color": "#f4b400"}
+      ]
+    };
+
+    const I18N = {
+      "zh-TW": {
+        htmlLang: "zh-Hant",
+        docTitle: "學園偶像大師 聲優節目日曆訂閱",
+        site_title: "學園偶像大師 聲優節目日曆",
+        site_subtitle: "自動同步學マス聲優廣播、生放送、舞台與活動行程，支援 Google / Apple / Outlook 日曆訂閱與各聲優獨立分流。",
+        main_cal_title: "📅 總日曆訂閱（包含所有聲優與官方行程）",
+        main_cal_desc: "適合想一次掌握所有學園偶像大師相關節目與活動的製作人。",
+        btn_copy_main: "複製訂閱連結",
+        btn_webcal: "系統日曆一鍵訂閱 (webcal)",
+        btn_gcal: "加入 Google 日曆",
+        btn_download_ics: "下載 .ics 檔案",
+        stat_date: "資料基準日 (JST)",
+        stat_events: "總行程數量",
+        stat_casts: "獨立聲優日曆",
+        stat_sync: "服務狀態",
+        status_ready: "已就緒",
+        status_running: "背景同步中...",
+        status_error: "遠端抓取失敗（保留舊檔）",
+        btn_sync_now: "🔄 立即同步更新",
+        btn_manual_upload: "📤 手動上傳 ICS",
+        upload_hint: "若原網站受 Firebase App Check 阻擋無頭瀏覽器，您可手動上傳匯出的 calendar.ics，伺服器將自動驗證並重新拆分所有聲優日曆：",
+        token_ph: "管理金鑰 (若未設定可留空)",
+        btn_upload_submit: "上傳並拆分",
+        cast_section_title: "🎙️ 依聲優獨立訂閱",
+        cast_section_desc: "每位聲優皆有固定專屬的 ICS 網址；即使暫時無近期行程也會保留空日曆，不會導致訂閱失效 (404)。",
+        btn_simple_table: "切換至簡易表格頁 (/casts/)",
+        search_placeholder: "搜尋聲優姓名或角色名稱（例：花岩香奈、葛城莉莉婭、藤田琴音）...",
+        filter_active_only: "僅顯示有近期活動",
+        event_unit: "場活動",
+        card_copy: "複製連結",
+        card_webcal: "webcal 訂閱",
+        card_gcal: "Google 日曆",
+        card_dl: "下載 .ics",
+        guide_title: "💡 日曆訂閱教學",
+        guide_subtitle: "請使用「透過網址訂閱」而非直接匯入檔案，日曆應用程式才會定期自動同步最新行程。",
+        guide_gcal_title: "Google 日曆 (網頁版)",
+        guide_gcal_1: "點擊上方或任一聲優卡片的「複製訂閱連結」或「加入 Google 日曆」。",
+        guide_gcal_2: "在 Google 日曆左側點選「其他日曆」旁的「＋」號 → 選擇「透過網址」。",
+        guide_gcal_3: "貼上剛才複製的 .ics 網址並點擊「新增日曆」即可完成訂閱。",
+        guide_apple_title: "Apple 日曆 (iOS / macOS)",
+        guide_apple_1: "直接點擊「系統日曆一鍵訂閱 (webcal)」，系統會自動喚起行事曆 App。",
+        guide_apple_2: "或於 iPhone「設定 → 行事曆 → 帳號 → 加入帳號 → 其他 → 加入已訂閱的行事曆」貼上連結。",
+        guide_apple_3: "可自訂重新整理頻率（建議設為每小時或每天）。",
+        guide_docker_title: "Linux Docker 自架說明",
+        guide_docker_1: "本服務支援 Docker 容器化部署，內建背景排程自動更新與聲優分流。",
+        guide_docker_2: "所有日曆資料持久化於 /data 目錄，重啟容器不會遺失現有訂閱與歷史聲優清單。",
+        guide_docker_3: "若需立即更新或手動匯入新日曆，可直接使用本頁上方的管理工具。",
+        footer_source: "行程資料來源：",
+        footer_disclaimer: "本專案為粉絲自製工具，與官方及原站無關聯。",
+        toast_copied: "已複製訂閱連結至剪貼簿！",
+        toast_sync_started: "已觸發背景同步更新！",
+        toast_upload_ok: "上傳成功！已更新總日曆與所有聲優分流。",
+        toast_select_file: "請先選擇要上傳的 .ics 檔案"
+      },
+      "zh-CN": {
+        htmlLang: "zh-Hans",
+        docTitle: "学园偶像大师 声优节目日历订阅",
+        site_title: "学园偶像大师 声优节目日历",
+        site_subtitle: "自动同步学マス声优广播、生放送、舞台与活动日程，支持 Google / Apple / Outlook 日历订阅与各声优独立分流。",
+        main_cal_title: "📅 总日历订阅（包含所有声优与官方日程）",
+        main_cal_desc: "适合想一次掌握所有学园偶像大师相关节目与活动的制作人。",
+        btn_copy_main: "复制订阅链接",
+        btn_webcal: "系统日历一键订阅 (webcal)",
+        btn_gcal: "添加到 Google 日历",
+        btn_download_ics: "下载 .ics 文件",
+        stat_date: "数据基准日 (JST)",
+        stat_events: "总日程数量",
+        stat_casts: "独立声优日历",
+        stat_sync: "服务状态",
+        status_ready: "已就绪",
+        status_running: "后台同步中...",
+        status_error: "远程抓取失败（保留旧档）",
+        btn_sync_now: "🔄 立即同步更新",
+        btn_manual_upload: "📤 手动上传 ICS",
+        upload_hint: "若原网站受 Firebase App Check 阻挡无头浏览器，您可手动上传导出的 calendar.ics，服务器将自动验证并重新拆分所有声优日历：",
+        token_ph: "管理密钥 (若未设置可留空)",
+        btn_upload_submit: "上传并拆分",
+        cast_section_title: "🎙️ 按声优独立订阅",
+        cast_section_desc: "每位声优均有固定专属的 ICS 网址；即使暂时无近期日程也会保留空日历，不会导致订阅失效 (404)。",
+        btn_simple_table: "切换至简易表格页 (/casts/)",
+        search_placeholder: "搜索声优姓名或角色名称（例：花岩香奈、葛城莉莉娅、藤田琴音）...",
+        filter_active_only: "仅显示有近期活动",
+        event_unit: "场活动",
+        card_copy: "复制链接",
+        card_webcal: "webcal 订阅",
+        card_gcal: "Google 日历",
+        card_dl: "下载 .ics",
+        guide_title: "💡 日历订阅教程",
+        guide_subtitle: "请使用「通过网址订阅」而非直接导入文件，日历应用才会定期自动同步最新日程。",
+        guide_gcal_title: "Google 日历 (网页版)",
+        guide_gcal_1: "点击上方或任一声优卡片的「复制订阅链接」或「添加到 Google 日历」。",
+        guide_gcal_2: "在 Google 日历左侧点击「其他日历」旁的「＋」号 → 选择「通过网址」。",
+        guide_gcal_3: "粘贴刚才复制的 .ics 网址并点击「添加日历」即可完成订阅。",
+        guide_apple_title: "Apple 日历 (iOS / macOS)",
+        guide_apple_1: "直接点击「系统日历一键订阅 (webcal)」，系统会自动唤起日历 App。",
+        guide_apple_2: "或于 iPhone「设置 → 日历 → 账户 → 添加账户 → 其他 → 添加已订阅的日历」粘贴链接。",
+        guide_apple_3: "可自定义刷新频率（建议设为每小时或每天）。",
+        guide_docker_title: "Linux Docker 自建说明",
+        guide_docker_1: "本服务支持 Docker 容器化部署，内置后台定时自动更新与声优分流。",
+        guide_docker_2: "所有日历数据持久化于 /data 目录，重启容器不会丢失现有订阅与历史声优清单。",
+        guide_docker_3: "若需立即更新或手动导入新日历，可直接使用本页上方的管理工具。",
+        footer_source: "日程数据来源：",
+        footer_disclaimer: "本项目为粉丝自制工具，与官方及原站无关联。",
+        toast_copied: "已复制订阅链接至剪贴板！",
+        toast_sync_started: "已触发后台同步更新！",
+        toast_upload_ok: "上传成功！已更新总日历与所有声优分流。",
+        toast_select_file: "请先选择要上传的 .ics 文件"
+      }
+    };
+
+    let currentLang = localStorage.getItem("gakumas_lang") || (
+      ((navigator.language || "").toLowerCase().includes("cn") || (navigator.language || "").toLowerCase().includes("hans"))
+        ? "zh-CN"
+        : "zh-TW"
+    );
+    let manifestData = FALLBACK_MANIFEST;
+    let syncStatusState = "ready";
+
+    function showToast(msg) {
+      const toast = document.getElementById("toastMsg");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+
+    function toAbsoluteUrl(relativePath) {
+      return new URL(relativePath, window.location.href).href;
+    }
+
+    function toWebcalUrl(httpUrl) {
+      return httpUrl.replace(/^https?:\/\//i, "webcal://");
+    }
+
+    function toGoogleCalUrl(httpUrl) {
+      return "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(toWebcalUrl(httpUrl));
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(I18N[currentLang].toast_copied);
+      } catch (e) {
+        window.prompt("Copy URL:", text);
+      }
+    }
+
+    function updateMainCalendarLinks() {
+      const mainUrl = toAbsoluteUrl("calendar.ics");
+      document.getElementById("mainCalUrlBox").textContent = mainUrl;
+      document.getElementById("webcalMainBtn").href = toWebcalUrl(mainUrl);
+      document.getElementById("gcalMainBtn").href = toGoogleCalUrl(mainUrl);
+      document.getElementById("copyMainBtn").onclick = () => copyText(mainUrl);
+    }
+
+    function renderCasts() {
+      const grid = document.getElementById("castsGrid");
+      const query = (document.getElementById("castSearchInput").value || "").trim().toLowerCase();
+      const onlyActive = document.getElementById("onlyActiveCheck").checked;
+      const dict = I18N[currentLang];
+      const casts = (manifestData && Array.isArray(manifestData.casts)) ? manifestData.casts : [];
+
+      grid.innerHTML = "";
+      for (const item of casts) {
+        const count = Number(item.count || 0);
+        if (onlyActive && count <= 0) continue;
+
+        const charTw = item.character_tw || "";
+        const charCn = item.character_cn || "";
+        const charDisplay = currentLang === "zh-CN" ? charCn : charTw;
+        const searchable = `${item.name} ${charTw} ${charCn}`.toLowerCase();
+        if (query && !searchable.includes(query)) continue;
+
+        const relPath = `casts/${encodeURIComponent(item.file)}`;
+        const fullUrl = toAbsoluteUrl(relPath);
+        const dotColor = item.color || "#64748b";
+
+        const card = document.createElement("div");
+        card.className = "cast-card";
+        card.innerHTML = `
+          <div class="cast-card-top">
+            <div>
+              <h3 class="cast-name">${escapeHtml(item.name)}</h3>
+              ${charDisplay ? `<span class="char-pill"><span class="char-dot" style="background:${escapeHtml(dotColor)}"></span>${escapeHtml(charDisplay)}</span>` : ""}
+            </div>
+            <span class="event-count ${count === 0 ? "zero" : ""}">${count} ${escapeHtml(dict.event_unit)}</span>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm copy-cast-btn">${escapeHtml(dict.card_copy)}</button>
+            <a class="btn btn-secondary btn-sm" href="${escapeHtml(toWebcalUrl(fullUrl))}">${escapeHtml(dict.card_webcal)}</a>
+            <a class="btn btn-secondary btn-sm" href="${escapeHtml(toGoogleCalUrl(fullUrl))}" target="_blank" rel="noopener">${escapeHtml(dict.card_gcal)}</a>
+            <a class="btn btn-secondary btn-sm" href="${escapeHtml(relPath)}" download="${escapeHtml(item.file)}">${escapeHtml(dict.card_dl)}</a>
+          </div>
+        `;
+        card.querySelector(".copy-cast-btn").addEventListener("click", () => copyText(fullUrl));
+        grid.appendChild(card);
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function updateStatusBadge() {
+      const badge = document.getElementById("syncBadge");
+      const dict = I18N[currentLang];
+      badge.className = "status-badge";
+      if (syncStatusState === "running") {
+        badge.classList.add("running");
+        badge.textContent = dict.status_running;
+      } else if (syncStatusState === "error") {
+        badge.classList.add("error");
+        badge.textContent = dict.status_error;
+      } else {
+        badge.classList.add("ok");
+        badge.textContent = dict.status_ready;
+      }
+    }
+
+    function applyLanguage(lang) {
+      if (!I18N[lang]) lang = "zh-TW";
+      currentLang = lang;
+      localStorage.setItem("gakumas_lang", lang);
+      const dict = I18N[lang];
+
+      document.documentElement.lang = dict.htmlLang;
+      document.title = dict.docTitle;
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (dict[key]) el.textContent = dict[key];
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (dict[key]) el.placeholder = dict[key];
+      });
+
+      document.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-lang") === lang);
+      });
+
+      updateStatusBadge();
+      renderCasts();
+    }
+
+    async function loadManifestAndStatus() {
+      try {
+        const res = await fetch("api/status", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.manifest && Array.isArray(data.manifest.casts)) {
+            manifestData = data.manifest;
+          }
+          if (data.sync) {
+            syncStatusState = data.sync.status === "running"
+              ? "running"
+              : (data.sync.status === "error" ? "error" : "ready");
+          }
+          updateStatsFromManifest();
+          updateStatusBadge();
+          renderCasts();
+          return;
+        }
+      } catch (_) {
+        // Fallback for static hosting
+      }
+
+      try {
+        const res = await fetch("casts/index.json", { cache: "no-store" });
+        if (res.ok) {
+          manifestData = await res.json();
+        }
+      } catch (_) {}
+      updateStatsFromManifest();
+      renderCasts();
+    }
+
+    function updateStatsFromManifest() {
+      if (!manifestData) return;
+      document.getElementById("statDate").textContent = manifestData.generated_for_date_jst || "-";
+      document.getElementById("statEvents").textContent = String(manifestData.source_event_count ?? "-");
+      document.getElementById("statCasts").textContent = String((manifestData.casts || []).length);
+    }
+
+    // Event bindings
+    document.querySelectorAll(".lang-btn").forEach(btn => {
+      btn.addEventListener("click", () => applyLanguage(btn.getAttribute("data-lang")));
+    });
+
+    document.getElementById("castSearchInput").addEventListener("input", renderCasts);
+    document.getElementById("onlyActiveCheck").addEventListener("change", renderCasts);
+
+    updateMainCalendarLinks();
+    applyLanguage(currentLang);
+    loadManifestAndStatus();
+  </script>
 </body>
 </html>
